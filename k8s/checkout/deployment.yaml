@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout
+  labels:
+    app: checkout
+    role: main
+    demo: blast-radius
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkout
+  template:
+    metadata:
+      labels:
+        app: checkout
+        role: main
+    spec:
+      containers:
+        - name: checkout
+          image: <+artifact.image>
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            # NOTE: BROKEN is intentionally NOT set here. The image tag
+            # is the source of truth for behaviour:
+            #   :1.0.0          bakes BROKEN=0
+            #   :1.0.1-broken   bakes BROKEN=1
+            # Override here only if you want to flip behaviour without
+            # changing the tag.
+            - name: SERVICE_VERSION
+              value: "<+serviceVariables.SERVICE_VERSION>"
+            - name: PORT
+              value: "<+serviceVariables.PORT>"
+            - name: INVENTORY_URL
+              value: "<+serviceVariables.INVENTORY_URL>"
+            - name: PAYMENT_URL
+              value: "<+serviceVariables.PAYMENT_URL>"
+            - name: NOTIFICATION_URL
+              value: "<+serviceVariables.NOTIFICATION_URL>"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
