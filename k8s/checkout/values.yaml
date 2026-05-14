@@ -1,0 +1,24 @@
+# Harness-resolved values for the checkout deployment.
+#
+# Why this file exists:
+#   Raw K8s YAML pulled from Git is NOT reliably processed for
+#   Harness expression substitution. Go templating + a values file is.
+#   So this file holds <+...> Harness expressions, deployment.yaml uses
+#   {{.Values.X}} Go-template references, and Harness chains the two:
+#     1. Substitute <+...> in values.yaml at deploy time
+#     2. Render deployment.yaml with the resulting values
+#     3. kubectl apply
+#
+# DO NOT inline these values into deployment.yaml directly - the symptom
+# of doing that is "Failed to apply default image tag '<+artifact.image>'"
+# because the expression never gets resolved.
+
+# Full image reference, e.g. index.docker.io/pritishharness/blast-radius-checkout:1.0.0
+image: <+artifact.image>
+
+# Service variables forwarded into the pod env.
+serviceVersion: <+serviceVariables.SERVICE_VERSION>
+port: <+serviceVariables.PORT>
+inventoryUrl: <+serviceVariables.INVENTORY_URL>
+paymentUrl: <+serviceVariables.PAYMENT_URL>
+notificationUrl: <+serviceVariables.NOTIFICATION_URL>

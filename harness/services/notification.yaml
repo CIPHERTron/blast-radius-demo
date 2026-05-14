@@ -1,0 +1,58 @@
+service:
+  name: notification
+  identifier: notification
+  orgIdentifier: default
+  projectIdentifier: Contextual_menace
+  description: |
+    Notification service (port 8003). Sends order-confirmation messages.
+    Downstream of checkout.
+
+    Blast-radius signal owned by this service: silent miss.
+    When checkout crashes after /charge but before /send, this service
+    is never told about the order, so the customer was charged but
+    receives no confirmation - the most user-visible piece of fallout.
+  tags:
+    role: downstream
+    tier: backend
+    demo: blast-radius
+    repo: blast-radius-demo
+    upstream: checkout
+  serviceDefinition:
+    type: Kubernetes
+    spec:
+      variables:
+        - name: SERVICE_VERSION
+          type: String
+          value: 1.0.0
+        - name: PORT
+          type: String
+          value: "8003"
+      artifacts:
+        primary:
+          primaryArtifactRef: dockerhub
+          sources:
+            - identifier: dockerhub
+              name: dockerhub
+              type: DockerRegistry
+              spec:
+                connectorRef: dockerhub
+                imagePath: pritishharness/blast-radius-notification
+                tag: <+input>
+      manifests:
+        - manifest:
+            identifier: notification_manifests
+            type: K8sManifest
+            spec:
+              store:
+                type: Github
+                spec:
+                  connectorRef: pritishghconn
+                  gitFetchType: Branch
+                  branch: main
+                  repoName: blast-radius-demo
+                  paths:
+                    - k8s/notification/deployment.yaml
+              valuesPaths:
+                - k8s/notification/values.yaml
+              skipResourceVersioning: false
+              enableDeclarativeRollback: false

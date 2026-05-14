@@ -1,0 +1,89 @@
+service:
+  name: checkout
+  identifier: checkout
+  orgIdentifier: default
+  projectIdentifier: Contextual_menace
+  description: |
+    Main orchestrator (port 8000). Coordinates the 3-step transaction
+    across inventory, payment, and notification.
+
+    Subject of the blast-radius demo: a bad deploy of this service
+    silently corrupts state in all three downstream services
+    (stuck inventory reservations, orphaned payment charges, missed
+    notifications) even though those services themselves are healthy.
+  tags:
+    role: main
+    tier: user-facing
+    demo: blast-radius
+    repo: blast-radius-demo
+    depends-on: inventory,payment,notification
+  serviceDefinition:
+    type: Kubernetes
+    spec:
+      variables:
+        - name: SERVICE_VERSION
+          type: String
+          description: Version stamp reported by /health and printed on each order
+          value: 1.0.0
+        - name: BROKEN
+          type: String
+          description: When "1", crashes mid-checkout to simulate a bad deploy
+          value: "0"
+        - name: PORT
+          type: String
+          value: "8000"
+        - name: INVENTORY_URL
+          type: String
+          value: http://inventory:8001
+        - name: PAYMENT_URL
+          type: String
+          value: http://payment:8002
+        - name: NOTIFICATION_URL
+          type: String
+          value: http://notification:8003
+      artifacts:
+        primary:
+          primaryArtifactRef: dockerhub
+          sources:
+            - identifier: dockerhub
+              name: dockerhub
+              type: DockerRegistry
+              spec:
+                connectorRef: dockerhub
+                imagePath: pritishharness/blast-radius-checkout
+                # Tag is the source of truth for behaviour. Pick:
+                #   1.0.0           -> healthy
+                #   1.0.1-broken    -> bad deploy (the blast-radius scenario)
+                tag: <+input>
+                # Omit `digest:` entirely. If you set it (even to "" or
+                # <+input> with no value at runtime) Harness will fail
+                # the service step with "image sha256 digest mismatch".
+                # Add it back only if you want strict pinning to a known
+                # sha256:... digest.
+      manifests:
+        - manifest:
+            identifier: checkout_manifests
+            type: K8sManifest
+            spec:
+              store:
+                # The reference setup uses a Github connector named
+                # `pritishghconn` against the `blast-radius-demo` repo.
+                # Replace connectorRef + repoName + branch with your own.
+                # If you'd rather use Harness File Store, swap this whole
+                # `store:` block to `type: Harness` with `files:` paths.
+                type: Github
+                spec:
+                  connectorRef: pritishghconn
+                  gitFetchType: Branch
+                  branch: main
+                  repoName: blast-radius-demo
+                  paths:
+                    - k8s/checkout/deployment.yaml
+              # valuesPaths is REQUIRED for Harness `<+...>` expressions
+              # to be substituted into the deployment. The deployment uses
+              # Go-template `{{.Values.X}}`; the values file holds the
+              # `<+artifact.image>` etc. that Harness resolves at deploy.
+              valuesPaths:
+                - k8s/checkout/values.yaml
+              skipResourceVersioning: false
+              enableDeclarativeRollback: false

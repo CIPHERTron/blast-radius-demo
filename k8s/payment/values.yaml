@@ -1,0 +1,5 @@
+# See k8s/checkout/values.yaml for why this file exists.
+
+image: <+artifact.image>
+serviceVersion: <+serviceVariables.SERVICE_VERSION>
+port: <+serviceVariables.PORT>

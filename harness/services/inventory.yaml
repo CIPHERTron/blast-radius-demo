@@ -1,0 +1,57 @@
+service:
+  name: inventory
+  identifier: inventory
+  orgIdentifier: default
+  projectIdentifier: Contextual_menace
+  description: |
+    Inventory service (port 8001). Tracks stock levels and per-order
+    reservations. Downstream of checkout.
+
+    Blast-radius signal owned by this service: stuck_reservation_count.
+    When checkout crashes mid-transaction, /reserve has run but neither
+    /commit nor /release has - so SKUs sit in a held state forever.
+  tags:
+    role: downstream
+    tier: backend
+    demo: blast-radius
+    repo: blast-radius-demo
+    upstream: checkout
+  serviceDefinition:
+    type: Kubernetes
+    spec:
+      variables:
+        - name: SERVICE_VERSION
+          type: String
+          value: 1.0.0
+        - name: PORT
+          type: String
+          value: "8001"
+      artifacts:
+        primary:
+          primaryArtifactRef: dockerhub
+          sources:
+            - identifier: dockerhub
+              name: dockerhub
+              type: DockerRegistry
+              spec:
+                connectorRef: dockerhub
+                imagePath: pritishharness/blast-radius-inventory
+                tag: <+input>
+      manifests:
+        - manifest:
+            identifier: inventory_manifests
+            type: K8sManifest
+            spec:
+              store:
+                type: Github
+                spec:
+                  connectorRef: pritishghconn
+                  gitFetchType: Branch
+                  branch: main
+                  repoName: blast-radius-demo
+                  paths:
+                    - k8s/inventory/deployment.yaml
+              valuesPaths:
+                - k8s/inventory/values.yaml
+              skipResourceVersioning: false
+              enableDeclarativeRollback: false

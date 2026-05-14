@@ -1,0 +1,26 @@
+# Docker Hub connector for the blast-radius demo images.
+#
+# All five demo images are public on docker.io/pritishharness/blast-radius-*,
+# so this connector uses Anonymous auth (no credentials required to pull).
+# If you switch the images to private, change `auth.type` to `UsernamePassword`
+# and add a `spec.username` + `spec.passwordRef` (referencing a Harness secret).
+#
+# Identifier `dockerhub` is what the service YAMLs reference via
+# `artifacts.primary.sources[].spec.connectorRef`.
+
+connector:
+  name: Docker Hub
+  identifier: dockerhub
+  description: Public Docker Hub registry for blast-radius-demo images
+  orgIdentifier: default
+  projectIdentifier: Contextual_menace
+  type: DockerRegistry
+  spec:
+    dockerRegistryUrl: https://index.docker.io/v2/
+    providerType: DockerHub
+    auth:
+      type: Anonymous
+    executeOnDelegate: false
+  tags:
+    demo: blast-radius
+    repo: blast-radius-demo

@@ -1,0 +1,59 @@
+service:
+  name: payment
+  identifier: payment
+  orgIdentifier: default
+  projectIdentifier: Contextual_menace
+  description: |
+    Payment service (port 8002). Records charges, confirmations, and
+    refunds. Downstream of checkout.
+
+    Blast-radius signal owned by this service: orphaned charges.
+    A charge is orphaned when /charge succeeded but /confirm was never
+    called by checkout - real customer money in limbo until a
+    reconciliation job runs.
+  tags:
+    role: downstream
+    tier: backend
+    demo: blast-radius
+    repo: blast-radius-demo
+    upstream: checkout
+    pii: financial
+  serviceDefinition:
+    type: Kubernetes
+    spec:
+      variables:
+        - name: SERVICE_VERSION
+          type: String
+          value: 1.0.0
+        - name: PORT
+          type: String
+          value: "8002"
+      artifacts:
+        primary:
+          primaryArtifactRef: dockerhub
+          sources:
+            - identifier: dockerhub
+              name: dockerhub
+              type: DockerRegistry
+              spec:
+                connectorRef: dockerhub
+                imagePath: pritishharness/blast-radius-payment
+                tag: <+input>
+      manifests:
+        - manifest:
+            identifier: payment_manifests
+            type: K8sManifest
+            spec:
+              store:
+                type: Github
+                spec:
+                  connectorRef: pritishghconn
+                  gitFetchType: Branch
+                  branch: main
+                  repoName: blast-radius-demo
+                  paths:
+                    - k8s/payment/deployment.yaml
+              valuesPaths:
+                - k8s/payment/values.yaml
+              skipResourceVersioning: false
+              enableDeclarativeRollback: false

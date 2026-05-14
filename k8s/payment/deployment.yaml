@@ -1,64 +1,52 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: checkout
+  name: payment
   labels:
-    app: checkout
-    role: main
+    app: payment
+    role: downstream
     demo: blast-radius
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: checkout
+      app: payment
   template:
     metadata:
       labels:
-        app: checkout
-        role: main
+        app: payment
+        role: downstream
     spec:
       containers:
-        - name: checkout
+        - name: payment
           image: {{.Values.image}}
           imagePullPolicy: Always
           ports:
             - name: http
-              containerPort: 8000
+              containerPort: 8002
           env:
-            # NOTE: BROKEN is intentionally NOT set here. The image tag
-            # is the source of truth for behaviour:
-            #   :1.0.0          bakes BROKEN=0
-            #   :1.0.1-broken   bakes BROKEN=1
-            # Override here only if you want to flip behaviour without
-            # changing the tag.
             - name: SERVICE_VERSION
               value: "{{.Values.serviceVersion}}"
             - name: PORT
               value: "{{.Values.port}}"
-            - name: INVENTORY_URL
-              value: "{{.Values.inventoryUrl}}"
-            - name: PAYMENT_URL
-              value: "{{.Values.paymentUrl}}"
-            - name: NOTIFICATION_URL
-              value: "{{.Values.notificationUrl}}"
           readinessProbe:
             httpGet:
               path: /health
-              port: 8000
+              port: 8002
             initialDelaySeconds: 3
             periodSeconds: 5
             failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /health
-              port: 8000
+              port: 8002
             initialDelaySeconds: 10
             periodSeconds: 15
             failureThreshold: 3
           resources:
             requests:
               cpu: 50m
-              memory: 96Mi
+              memory: 64Mi
             limits:
-              cpu: 300m
-              memory: 256Mi
+              cpu: 200m
+              memory: 192Mi
