@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blast Radius Demo &middot; Checkout System</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo-dot"></span>
+        <h1>Blast Radius Demo</h1>
+        <span class="subtitle">Checkout System &middot; 4-service monorepo</span>
+      </div>
+      <div class="deploys">
+        <button id="deploy-good" class="btn btn-good" title="Restart checkout with the healthy build">
+          Deploy v1.0.0 <span class="muted">(good)</span>
+        </button>
+        <button id="deploy-bad" class="btn btn-bad" title="Restart checkout with the broken build">
+          Deploy v1.0.1 <span class="muted">(broken)</span>
+        </button>
+        <button id="reset" class="btn btn-ghost" title="Clear all in-memory state across services">
+          Reset state
+        </button>
+      </div>
+    </header>
+
+    <section id="blast-banner" class="banner banner-hidden">
+      <div class="banner-icon">!</div>
+      <div class="banner-body">
+        <strong>Blast radius detected.</strong>
+        <span id="blast-summary"></span>
+      </div>
+    </section>
+
+    <section class="cards">
+      <article id="card-checkout" class="card card-main" data-service="checkout">
+        <header>
+          <span class="health-dot"></span>
+          <h2>Checkout</h2>
+          <span class="role">main &middot; orchestrator</span>
+        </header>
+        <div class="card-meta">
+          <span class="port">:8000</span>
+          <span class="version">v?</span>
+        </div>
+        <dl class="metrics">
+          <div><dt>Successful orders</dt><dd id="checkout-success">0</dd></div>
+          <div><dt>Stuck orders</dt><dd id="checkout-stuck" class="bad">0</dd></div>
+          <div><dt>Build mode</dt><dd id="checkout-build">healthy</dd></div>
+        </dl>
+      </article>
+
+      <article id="card-inventory" class="card" data-service="inventory">
+        <header>
+          <span class="health-dot"></span>
+          <h2>Inventory</h2>
+          <span class="role">downstream</span>
+        </header>
+        <div class="card-meta">
+          <span class="port">:8001</span>
+          <span class="version">v?</span>
+        </div>
+        <dl class="metrics">
+          <div><dt>Stock items</dt><dd id="inventory-stock">&mdash;</dd></div>
+          <div><dt>Stuck reservations</dt><dd id="inventory-stuck" class="bad">0</dd></div>
+        </dl>
+      </article>
+
+      <article id="card-payment" class="card" data-service="payment">
+        <header>
+          <span class="health-dot"></span>
+          <h2>Payment</h2>
+          <span class="role">downstream</span>
+        </header>
+        <div class="card-meta">
+          <span class="port">:8002</span>
+          <span class="version">v?</span>
+        </div>
+        <dl class="metrics">
+          <div><dt>Confirmed</dt><dd id="payment-confirmed">$0.00</dd></div>
+          <div><dt>Orphaned charges</dt><dd id="payment-orphaned" class="bad">$0.00</dd></div>
+        </dl>
+      </article>
+
+      <article id="card-notification" class="card" data-service="notification">
+        <header>
+          <span class="health-dot"></span>
+          <h2>Notification</h2>
+          <span class="role">downstream</span>
+        </header>
+        <div class="card-meta">
+          <span class="port">:8003</span>
+          <span class="version">v?</span>
+        </div>
+        <dl class="metrics">
+          <div><dt>Sent</dt><dd id="notification-sent">0</dd></div>
+          <div><dt>Missed for stuck orders</dt><dd id="notification-missed" class="bad">0</dd></div>
+        </dl>
+      </article>
+    </section>
+
+    <section class="action-row">
+      <button id="place-order" class="btn btn-primary">Place test order</button>
+      <button id="place-order-burst" class="btn">Place 5 orders</button>
+      <span id="last-order" class="last-order"></span>
+    </section>
+
+    <section class="orders">
+      <h3>Recent orders</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>$</th>
+            <th>Reserve</th>
+            <th>Charge</th>
+            <th>Notify</th>
+            <th>Commit</th>
+            <th>Confirm</th>
+            <th>Status</th>
+            <th>Built by</th>
+          </tr>
+        </thead>
+        <tbody id="orders-tbody">
+          <tr class="empty"><td colspan="10">No orders yet. Click "Place test order" above.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="bottom">
+      Polling every 1s &middot;
+      <a href="/health" target="_blank">checkout /health</a> &middot;
+      <a href="http://localhost:8001/state" target="_blank">inventory state</a> &middot;
+      <a href="http://localhost:8002/state" target="_blank">payment state</a> &middot;
+      <a href="http://localhost:8003/state" target="_blank">notification state</a>
+    </footer>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

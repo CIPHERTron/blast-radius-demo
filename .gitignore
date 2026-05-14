@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Logs and pidfiles
+logs/*
+!logs/.gitkeep
+*.log
+*.pid
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
