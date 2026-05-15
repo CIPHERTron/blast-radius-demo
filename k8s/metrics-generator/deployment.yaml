@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blast-radius-sim
+  labels:
+    app: blast-radius-sim
+    demo: blast-radius
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blast-radius-sim
+  template:
+    metadata:
+      labels:
+        app: blast-radius-sim
+        demo: blast-radius
+    spec:
+      containers:
+        - name: metrics-generator
+          image: pritishharness/blast-radius-metrics-gen:1.0.1-amd64
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8090
+          env:
+            # No Pushgateway needed - Prometheus scrapes /metrics on port 8090.
+            # DRY_RUN=1 silences the push loop so there are no push errors.
+            - name: DRY_RUN
+              value: "1"
+            - name: PORT
+              value: "8090"
+            - name: PUSH_INTERVAL_SECONDS
+              value: "5"
+            - name: JOB_NAME
+              value: "blast-radius-demo"
+            - name: INSTANCE
+              value: "sim-0"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
