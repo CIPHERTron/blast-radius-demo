@@ -1,0 +1,45 @@
+# Prometheus scrape config snippet for the blast-radius metrics generator.
+#
+# Add this job to your Prometheus ConfigMap / prometheus.yml so Prometheus
+# scrapes the generator pod running inside the cluster.
+#
+# HOW TO APPLY (one-time):
+#   1. Find the Prometheus ConfigMap:
+#        kubectl get configmap -n <prom-namespace> | grep prometheus
+#   2. Edit it:
+#        kubectl edit configmap <name> -n <prom-namespace>
+#   3. Add the job below under `scrape_configs:`.
+#   4. Trigger a config reload (Prometheus watches the ConfigMap if
+#      --web.enable-lifecycle is on, otherwise roll the pod):
+#        curl -X POST http://8.229.139.162:9090/-/reload
+#      or
+#        kubectl rollout restart deployment prometheus -n <prom-namespace>
+
+# --- paste this block into scrape_configs: ---
+#
+# - job_name: blast-radius-sim
+#   scrape_interval: 5s        # generator ticks every 5s; scrape in sync
+#   scrape_timeout: 4s
+#   metrics_path: /metrics
+#   static_configs:
+#     - targets:
+#       - blast-radius-sim.default.svc.cluster.local:8090
+#       labels:
+#         env: sim
+#
+# --- end paste ---
+#
+# If the generator is deployed in a namespace other than `default`, change
+# the target to:
+#   blast-radius-sim.<namespace>.svc.cluster.local:8090
+
+scrape_configs:
+  - job_name: blast-radius-sim
+    scrape_interval: 5s
+    scrape_timeout: 4s
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - blast-radius-sim.default.svc.cluster.local:8090
+        labels:
+          env: sim

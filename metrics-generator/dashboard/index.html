@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PIPA Metrics Generator</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo-dot"></span>
+        <h1>PIPA Metrics Generator</h1>
+        <span class="subtitle">Pushgateway scenario simulator</span>
+      </div>
+      <div id="config" class="config muted"></div>
+    </header>
+
+    <section class="bar">
+      <div class="scenario-block">
+        <div class="label">Current scenario</div>
+        <div id="scenario-name">&mdash;</div>
+        <div id="scenario-desc" class="muted small"></div>
+      </div>
+      <div class="timeline-block">
+        <div class="label">Auto timeline</div>
+        <div class="timeline">
+          <div id="timeline-fill" class="timeline-fill"></div>
+          <div id="timeline-text" class="timeline-text">stopped</div>
+        </div>
+        <div class="timeline-controls">
+          <button id="timeline-start" class="btn btn-primary">Start blast-radius timeline</button>
+          <button id="timeline-stop" class="btn">Pause</button>
+          <button id="timeline-reset" class="btn btn-ghost">Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="scenario-buttons" class="scenarios"></section>
+
+    <section class="cards">
+      <article id="card-checkout_svc" class="card card-main" data-service="checkout_svc">
+        <header><span class="health-dot"></span><h2>checkout_svc</h2><span class="role">main</span></header>
+        <dl class="metrics">
+          <div><dt>Health</dt><dd class="health-label">&mdash;</dd></div>
+          <div><dt>Error rate</dt><dd class="m-err">&mdash;</dd></div>
+          <div><dt>p99 latency</dt><dd class="m-p99">&mdash;</dd></div>
+          <div><dt>CPU</dt><dd class="m-cpu">&mdash;</dd></div>
+          <div><dt>Memory</dt><dd class="m-mem">&mdash;</dd></div>
+          <div><dt>RPS</dt><dd class="m-rps">&mdash;</dd></div>
+        </dl>
+      </article>
+
+      <article id="card-inventory" class="card" data-service="inventory">
+        <header><span class="health-dot"></span><h2>inventory</h2><span class="role">downstream</span></header>
+        <dl class="metrics">
+          <div><dt>Health</dt><dd class="health-label">&mdash;</dd></div>
+          <div><dt>Error rate</dt><dd class="m-err">&mdash;</dd></div>
+          <div><dt>p99 latency</dt><dd class="m-p99">&mdash;</dd></div>
+          <div><dt>CPU</dt><dd class="m-cpu">&mdash;</dd></div>
+          <div><dt>Memory</dt><dd class="m-mem">&mdash;</dd></div>
+          <div><dt>RPS</dt><dd class="m-rps">&mdash;</dd></div>
+        </dl>
+      </article>
+
+      <article id="card-payment" class="card" data-service="payment">
+        <header><span class="health-dot"></span><h2>payment</h2><span class="role">downstream</span></header>
+        <dl class="metrics">
+          <div><dt>Health</dt><dd class="health-label">&mdash;</dd></div>
+          <div><dt>Error rate</dt><dd class="m-err">&mdash;</dd></div>
+          <div><dt>p99 latency</dt><dd class="m-p99">&mdash;</dd></div>
+          <div><dt>CPU</dt><dd class="m-cpu">&mdash;</dd></div>
+          <div><dt>Memory</dt><dd class="m-mem">&mdash;</dd></div>
+          <div><dt>RPS</dt><dd class="m-rps">&mdash;</dd></div>
+        </dl>
+      </article>
+
+      <article id="card-notification" class="card" data-service="notification">
+        <header><span class="health-dot"></span><h2>notification</h2><span class="role">downstream</span></header>
+        <dl class="metrics">
+          <div><dt>Health</dt><dd class="health-label">&mdash;</dd></div>
+          <div><dt>Error rate</dt><dd class="m-err">&mdash;</dd></div>
+          <div><dt>p99 latency</dt><dd class="m-p99">&mdash;</dd></div>
+          <div><dt>CPU</dt><dd class="m-cpu">&mdash;</dd></div>
+          <div><dt>Memory</dt><dd class="m-mem">&mdash;</dd></div>
+          <div><dt>RPS</dt><dd class="m-rps">&mdash;</dd></div>
+        </dl>
+      </article>
+    </section>
+
+    <section class="push-status">
+      <h3>Last push</h3>
+      <div id="push-results"></div>
+    </section>
+
+    <section class="promql">
+      <h3>PromQL the agents will see</h3>
+      <ul class="muted small">
+        <li><code>rate(http_errors_total{service="checkout_svc"}[10m])</code></li>
+        <li><code>rate(http_requests_total{service="checkout_svc",status=~"5.."}[10m])</code></li>
+        <li><code>histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{service="checkout_svc"}[10m]))</code></li>
+        <li><code>http_request_duration_p99{service="checkout_svc"}</code></li>
+        <li><code>cpu_usage_ratio{service="checkout_svc"}</code></li>
+        <li><code>process_resident_memory_bytes{service="checkout_svc"}</code></li>
+        <li><code>service_health{service="checkout_svc"}</code></li>
+        <li>(same series for inventory, payment, notification)</li>
+      </ul>
+    </section>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

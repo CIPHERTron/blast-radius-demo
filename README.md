@@ -42,13 +42,32 @@ compensating actions (release / refund) run either.
 blast-radius-demo/
 ├── requirements.txt
 ├── services/
-│   ├── checkout/        main orchestrator + dashboard host (port 8000)
-│   ├── inventory/       stock + reservations             (port 8001)
-│   ├── payment/         charges ledger                   (port 8002)
-│   └── notification/    sent log                         (port 8003)
+│   ├── checkout/        main orchestrator + Dockerfile + dashboard host (:8000)
+│   ├── inventory/       stock + reservations             + Dockerfile  (:8001)
+│   ├── payment/         charges ledger                   + Dockerfile  (:8002)
+│   └── notification/    sent log                         + Dockerfile  (:8003)
 ├── dashboard/           static HTML/CSS/JS, served by checkout
-└── scripts/             start_all / stop_all / deploy_good / deploy_bad
+├── harness/             Harness CD service + connector YAMLs
+├── k8s/                 K8s manifests (Deployment + Service per microservice)
+├── metrics-generator/   PIPA agent Prometheus-metrics simulator (FastAPI + Pushgateway)
+└── scripts/
+    ├── start_all / stop_all / deploy_good / deploy_bad   # local processes
+    ├── build_and_push.sh                                  # 5 Docker images
+    └── start_metrics_generator.sh                         # PIPA metrics simulator
 ```
+
+For the PIPA Worker Agents (`Predictive Incident Prevention Agent`), see
+[`metrics-generator/README.md`](metrics-generator/README.md). It pushes
+the exact PromQL series the agents query to a Pushgateway, scripted as
+a rolling-deploy + blast-radius timeline so the agents can run against
+realistic signals without an actual deployment.
+
+To deploy this through Harness CD, see [`harness/README.md`](harness/README.md).
+The flow is: `./scripts/build_and_push.sh` builds and pushes 5 images
+to `docker.io/pritishharness/blast-radius-*` (including a
+`checkout:1.0.1-broken` tag with the bad behaviour baked in), then
+import the YAMLs in [`harness/`](harness/) into project `Contextual_menace`
+on org `default`.
 
 ---
 
